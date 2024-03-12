@@ -1,8 +1,12 @@
 #  [CenterNet](https://arxiv.org/abs/1904.07850)
 ![](./Figure/overview.png)
-[B站讲解视频](https://www.bilibili.com/video/BV1r44y1a75j/?spm_id_from=333.337.search-card.all.click&vd_source=42f1e486842e9add1356fbbd0f4159f3)
+[B站讲解视频1](https://www.bilibili.com/video/BV1r44y1a75j/?spm_id_from=333.337.search-card.all.click&vd_source=42f1e486842e9add1356fbbd0f4159f3)
+
+[B站讲解视频2，本项目中采用的代码基于此视频](https://www.bilibili.com/video/BV1mK411u77S/?spm_id_from=333.337.search-card.all.click&vd_source=42f1e486842e9add1356fbbd0f4159f3)
+
+
 ## 1. Network
- - Backbone: [ResNet]()
+ - Backbone: [ResNet](), [Hourglass](), [Deep Layer Aggregation]()
  - [Decoder](): UpSample + BN + Activation作为一个block，以此堆叠三次作为一个Decoder。其中CenterNet的UpSample为反卷积，激活函数为ReLU。需要注意的是，三个反卷积的核大小都为4x4，卷积核的数目分别为256，128，64。那么经过Decoder之后，feature map的宽高维度则变为原来1/4（比较重要，后面会反复用到），通道维度为64。
 
  - Head:
@@ -61,6 +65,9 @@
             else:
                 print("CUDA is not available")
             ```
+    - Install COCO API
+        - pip install Cython
+        - pip install pycocotools==2.0.0
 
 ### 1.4.2 Forward 
 - (x86)
