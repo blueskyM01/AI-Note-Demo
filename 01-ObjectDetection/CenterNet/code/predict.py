@@ -3,7 +3,7 @@
 #   整合到了一个py文件中，通过指定mode进行模式的修改。
 #-----------------------------------------------------------------------#
 import time
-
+import os
 import cv2
 import numpy as np
 from PIL import Image
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     #   'heatmap'           表示进行预测结果的热力图可视化，详情查看下方注释。
     #   'export_onnx'       表示将模型导出为onnx，需要pytorch1.7.1以上。
     #----------------------------------------------------------------------------------------------------------#
-    mode = "predict"
+    mode = "export_onnx"
     #-------------------------------------------------------------------------#
     #   crop                指定了是否在单张图片预测后对目标进行截取
     #   count               指定了是否进行目标的计数
@@ -89,7 +89,11 @@ if __name__ == "__main__":
                 continue
             else:
                 r_image = centernet.detect_image(image, crop = crop, count=count)
-                r_image.show()
+                save_results = np.asanyarray(r_image)
+                # r_image.show()
+                if not os.path.exists(dir_save_path):
+                    os.makedirs(dir_save_path)
+                cv2.imwrite(dir_save_path+'/resuts.jpg', save_results)
 
     elif mode == "video":
         capture = cv2.VideoCapture(video_path)
@@ -144,7 +148,7 @@ if __name__ == "__main__":
         print(str(tact_time) + ' seconds, ' + str(1/tact_time) + 'FPS, @batch_size 1')
 
     elif mode == "dir_predict":
-        import os
+        
 
         from tqdm import tqdm
 
