@@ -30,8 +30,8 @@ class CenterNet(object):
         #   验证集损失较低不代表mAP较高，仅代表该权值在验证集上泛化性能较好。
         #   如果出现shape不匹配，同时要注意训练时的model_path和classes_path参数的修改
         #--------------------------------------------------------------------------#
-        "model_path"        : 'model_data/centernet_resnet50_voc.pth',
-        "classes_path"      : 'model_data/voc_classes.txt',
+        "model_path"        : '/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/logs/best_epoch_weights.pth',
+        "classes_path"      : '/root/code/dataset/annotations/coco_classes.txt',
         #--------------------------------------------------------------------------#
         #   用于选择所使用的模型的主干
         #   resnet50, hourglass
@@ -181,7 +181,7 @@ class CenterNet(object):
         #---------------------------------------------------------#
         #   设置字体与边框厚度
         #---------------------------------------------------------#
-        font = ImageFont.truetype(font='model_data/simhei.ttf', size=np.floor(3e-2 * np.shape(image)[1] + 0.5).astype('int32'))
+        font = ImageFont.truetype(font='img/simhei.ttf', size=np.floor(3e-2 * np.shape(image)[1] + 0.5).astype('int32'))
         thickness = max((np.shape(image)[0] + np.shape(image)[1]) // self.input_shape[0], 1)
         #---------------------------------------------------------#
         #   计数
