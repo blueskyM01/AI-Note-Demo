@@ -108,8 +108,12 @@
     cow
     ```
 - COCO格式的训练标签生成，在`code/generate_train_label`目录下找到[coco_annotation.py](code/generate_train_label/coco_annotation.py)，指令如下：
-    - 
-    - `python coco_annotation.py --image_dir xxx --annotation_dir xxx save_path xxx`
+    ```
+    python coco_annotation.py --ann_dir coco标签的存储路径 --ann_name coco标签的名称 --label_save_dir 生成训练标签的存储路径 --label_save_name 生成训练标签的存储名称 --class_names 生成coco中类别文件的存储名称 --images_dir 训练图像的存储目录
+    
+    For example:
+    python coco_annotation.py --ann_dir /root/code/dataset/annotations --ann_name instances_train2017.json --label_save_dir /root/code/dataset/annotations --label_save_name instances_train2017.txt --class_names coco_classes.txt --images_dir /root/code/dataset/train2017
+    ```
 
 - 训练
     - 在`code`目录下新建`model_data`和`logs`文件夹：`mkdir model_data`, `mkdir logs` 
@@ -118,6 +122,8 @@
         ```
         classes_path = "第一步‘制作训练标签’中的‘类别标签’路径"
         model_path = "预训练模型路径"
+        train_annotation_path = "第一步‘制作训练标签’中的‘训练标签’路径"
+        val_annotation_path = "第一步‘制作训练标签’中的‘训练标签’路径"
         ```
     - `cd code`
     - `python train.py`
