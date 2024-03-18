@@ -73,7 +73,8 @@
     - apt-get install -y libxrender-dev
     - cd 01-ObjectDetection/CenterNet/code
     - pip install -r requirements.txt
-### 4.2 Train (x86)
+### 4.2 Object detection (x86)
+#### 4.2.1 Train 
 - 制作训练标签 (`.txt` file)
     ```
     1、训练标签
@@ -127,7 +128,7 @@
         ```
     - `cd code`
     - `python train.py`
-### 4.3 Forward 
+#### 4.2.2 Forward 
 - (x86)
     - 在`code`目录下找到`centernet.py`，修改相关参数：
         ```
@@ -144,8 +145,51 @@
     - 预测成功后，会在`img_out`目录下生成`results.jpg`
 - arm
 
-### 4.4 Estimation
+#### 4.2.3 Estimation
 
-### 4.5 convert to onnx
+#### 4.2.4 convert to onnx
 
-### 4.6 onnx convert to trt
+#### 4.2.5 onnx convert to trt
+
+### 4.3 Keypoint detection (x86)
+#### 4.3.1 Train 
+- 制作训练标签 (`.txt` file)
+    ```
+    1、训练标签
+    每行：image_path x1,y1,v1,cls x2,y2,v2,cls ... (注意：类别标签从0开始，如果有10个类，则类别为 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+
+    For example (train.txt): 
+    /dir/000014.jpg 72,163,302,228,5 185,194,500,316,6 416,180,500,222,6 314,8,344,65,14 331,4,361,61,14 357,8,401,61,0
+    /dir/000015.jpg 77,136,360,358,1
+
+    2、类别标签 (`.txt` file)，如果是10个类
+    cls0
+    cls1
+    cls2
+    cls3
+    cls4
+    cls5
+    cls6
+    cls7
+    cls8
+    cls9
+
+    For example (class.txt):
+    aerop
+    bicyc
+    bird
+    boat
+    bottl
+    bus
+    car
+    cat
+    chair
+    cow
+    ```
+- COCO格式的训练标签生成，在`code/generate_train_label`目录下找到[coco_keypoint_annotation.py](code/generate_train_label/coco_keypoint_annotation.py)，指令如下：
+    ```
+    python coco_annotation.py --ann_dir coco标签的存储路径 --ann_name coco标签的名称 --label_save_dir 生成训练标签的存储路径 --label_save_name 生成训练标签的存储名称 --class_names 生成coco中类别文件的存储名称 --images_dir 训练图像的存储目录
+    
+    For example:
+    python coco_annotation.py --ann_dir /root/code/dataset/annotations --ann_name instances_train2017.json --label_save_dir /root/code/dataset/annotations --label_save_name instances_train2017.txt --class_names coco_classes.txt --images_dir /root/code/dataset/train2017
+    ```
