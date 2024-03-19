@@ -153,14 +153,26 @@
 
 ### 4.3 Keypoint detection (x86)
 #### 4.3.1 Train 
-- 制作训练标签 (`.txt` file)
+- 制作训练标签 (`.json` file)
     ```
     1、训练标签
-    每行：image_path x1,y1,v1,cls x2,y2,v2,cls ... (注意：类别标签从0开始，如果有10个类，则类别为 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+    dict={'image1_path': [[x1,y1,cls,index], [x2,y2,cls,index], ...], 'image2_path': [[x1,y1,cls,index], [x2,y2,cls,index], ...]}
 
-    For example (train.txt): 
-    /dir/000014.jpg 72,163,302,228,5 185,194,500,316,6 416,180,500,222,6 314,8,344,65,14 331,4,361,61,14 357,8,401,61,0
-    /dir/000015.jpg 77,136,360,358,1
+    Description：
+    key: image_path;
+    value: list，where, the list container several sub lists. The elements of sub list are x , y, cls and index. Note that 1) cls start from 0，if there are 10 classes in dataset，the cls is 0, 1, 2, 3, 4, 5, 6, 7, 8, 9; 2) index only avaliable in container corener point detection. Or use -1 to respresent the index
+
+    For example (train.json): 
+    {"train01/image_0000000432.jpeg": [["4", "2", 0, "0"]], 
+     "train01/image_0000000523.jpeg": [["4", "2", 0, "1"], ["2", "7", 0, "0"], ["1", "9", 0, "0"], ["3", "0", 0, "0"], ["2", "4", 0, "0"], ["2", "2", 0, "0"], ["2", "7", 0, "0"], ["5", "1", 0, "0"], ["5", "5", 0, "0"], ["5", "3", 0, "0"], ["4", "3", 0, "0"], ["4", "4", 0, "0"], ["4", "8", 0, "0"], ["4", "8", 0, "0"], ["3", "9", 0, "0"], ["2", "7", 0, "0"], ["2", "1", 0, "0"]], 
+     "train01/image_0000000524.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000525.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000526.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000527.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000528.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000529.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000530.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000531.jpeg": [["4", "2", 0, "1"]]}
 
     2、类别标签 (`.txt` file)，如果是10个类
     cls0
@@ -193,3 +205,12 @@
     For example:
     python coco_annotation.py --ann_dir /root/code/dataset/annotations --ann_name instances_train2017.json --label_save_dir /root/code/dataset/annotations --label_save_name instances_train2017.txt --class_names coco_classes.txt --images_dir /root/code/dataset/train2017
     ```
+
+- `CVAT for images 1.1`格式的训练标签生成，在`code/generate_train_label`目录下找到[cvat_kepoint_annotation.pyy](code/generate_train_label/cvat_kepoint_annotation.py)，指令如下：
+    ```
+    python cvat_kepoint_annotation.py --dataset_dir 图像存储目录 --ann_dir cvat标签的存储路径 --ann_name 标签的名称 --label_save_dir 生成训练标签的存储路径 --label_save_name 生成训练标签的存储名称 --class_names 生成coco中类别文件的存储名称 
+    
+    For example:
+    python cvat_kepoint_annotation.py --dataset_dir /dataset/train01 --ann_dir /root/code/dataset/annotations --ann_name annotations.xml --label_save_dir /root/code/dataset/annotations --label_save_name train.json --class_names classes.txt
+    ```
+

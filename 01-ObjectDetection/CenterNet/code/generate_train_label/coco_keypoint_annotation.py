@@ -1,30 +1,77 @@
 from pycocotools.coco import COCO
 import numpy as np
-import cv2, os, argparse
+import cv2, os, argparse, json
 from collections import defaultdict
 
 '''
-功能： Generate train.txt/val.txt/test.txt files One line for one image, in the format like：
-      image_index, image_absolute_path, img_width, img_height, cat1, box_1, cat2, box_2, ... catn, box_n.
-      Box_x format: label_index x_min y_min x_max y_max.
-                    (The origin of coordinates is at the left top corner, left top => (xmin, ymin), right bottom => (xmax, ymax).)
-      image_index: is the line index which starts from zero.
-      label_index: is in range [0, class_num - 1].
-      For example:
-      0 xxx/xxx/a.jpg 1920 1080 0 453 369 473 391 1 588 245 608 268
-      1 xxx/xxx/b.jpg 1920 1080 1 466 403 485 422 2 793 300 809 320
+1、训练标签
+    dict={'image1_path': [[x1,y1,cls,index], [x2,y2,cls,index], ...], 'image2_path': [[x1,y1,cls,index], [x2,y2,cls,index], ...]}
+
+    Description：
+    key: image_path;
+    value: list，where, the list container several sub lists. The elements of sub list are x , y, cls and index. Note that 1) cls start from 0，if there are 10 classes in dataset，the cls is 0, 1, 2, 3, 4, 5, 6, 7, 8, 9; 2) index only avaliable in container corener point detection. Or use -1 to respresent the index
+
+    For example (train.json): 
+    {"train01/image_0000000432.jpeg": [["4", "2", 0, "0"]], 
+     "train01/image_0000000523.jpeg": [["4", "2", 0, "1"], ["2", "7", 0, "0"], ["1", "9", 0, "0"], ["3", "0", 0, "0"], ["2", "4", 0, "0"], ["2", "2", 0, "0"], ["2", "7", 0, "0"], ["5", "1", 0, "0"], ["5", "5", 0, "0"], ["5", "3", 0, "0"], ["4", "3", 0, "0"], ["4", "4", 0, "0"], ["4", "8", 0, "0"], ["4", "8", 0, "0"], ["3", "9", 0, "0"], ["2", "7", 0, "0"], ["2", "1", 0, "0"]], 
+     "train01/image_0000000524.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000525.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000526.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000527.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000528.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000529.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000530.jpeg": [["4", "2", 0, "1"]], 
+     "train01/image_0000000531.jpeg": [["4", "2", 0, "1"]]}
+
+2、类别标签 (`.txt` file)，如果是10个类
+cls0
+cls1
+cls2
+cls3
+cls4
+cls5
+cls6
+cls7
+cls8
+cls9
+cls10
+cls11
+cls12
+cls13
+cls14
+cls15
+cls16
+
+For example (class.txt):
+nose
+left_eye
+right_eye
+left_ear
+right_ear
+left_shoulder
+right_shoulder
+left_elbow
+right_elbow
+left_wrist
+right_wrist
+left_hip
+right_hip
+left_knee
+right_knee
+left_ankle
+right_ankle
 '''
 
 
 
 class zpmc_GenerateTrainLabel:
-    def __init__(self, ann_dir, ann_name, label_save_dir, label_save_name, class_names, images_dir):
+    def __init__(self, dataset_dir, ann_dir, ann_name, label_save_dir, label_save_name, class_names):
         self.ann_dir = ann_dir
         self.ann_name = ann_name
         self.label_save_dir = label_save_dir
         self.label_save_name = label_save_name
         self.class_names = class_names
-        self.images_dir = images_dir
+        self.dataset_dir = dataset_dir
 
     def get_ann(self):
         name_box_id = defaultdict(list)  # 创建一个字典，值的type是list
@@ -62,8 +109,10 @@ class zpmc_GenerateTrainLabel:
 
         # save ".name" file
         f_name = open(os.path.join(self.label_save_dir, self.class_names), 'w')
-        for new_key in sorted(new_cat_names.keys()):
-            f_name.write(new_cat_names[new_key] + '\n')
+        ccls = ["nose","left_eye","right_eye","left_ear","right_ear","left_shoulder","right_shoulder","left_elbow","right_elbow","left_wrist","right_wrist","left_hip","right_hip","left_knee","right_knee","left_ankle","right_ankle"]
+
+        for new_key in ccls:
+            f_name.write(new_key + '\n')
         f_name.close()
 
         # 找出所有category_id的image_id, 参数没有给定的话，指的是数据集中所有图像id
@@ -100,12 +149,13 @@ class zpmc_GenerateTrainLabel:
 
     def generate_train_label(self):
         name_box_id = self.get_ann()
-        f = open(os.path.join(self.label_save_dir, self.label_save_name), 'w')
+        key_point_anns = defaultdict(list)  # 创建一个字典，值的type是list
+        # f = open(os.path.join(self.label_save_dir, self.label_save_name), 'w')
         counter = 0
         for key in name_box_id.keys():
-            elem = []
+            # elem = []
             counter += 1
-            elem.append(os.path.join(self.images_dir, key))  # image_name
+            # elem.append(os.path.join(self.images_dir, key))  # image_name
 
             keypoints_list = []
             box_infos = name_box_id[key]
@@ -115,51 +165,35 @@ class zpmc_GenerateTrainLabel:
                 # x_max = int(x_min + info[0][2])
                 # y_max = int(y_min + info[0][3])
                 keypoints = info[0]
-                keypoints.append(info[3])
-                keypoints_list.append(keypoints)
+                for i in range(len(keypoints)//3):
+                    x = keypoints[i*3+0]
+                    y = keypoints[i*3+1]
+                    v = keypoints[i*3+2]
+                    if v == 2:
+                        key_point_anns[os.path.join(self.dataset_dir, key)].append([int(x), int(y), i, -1])
 
-            elem = elem + keypoints_list
-            for index in range(len(elem)):
-                if index == 0:
-                    f.write(elem[index] + ' ')
-                    
-                else:
-                    points_set = elem[index]
-                    for ii in range(len(points_set)):
-                        if ii == len(points_set)-1:
-                            f.write(str(points_set[ii]) + ' ')
-                        else:
-                            f.write(str(points_set[ii]) + ',')
-            f.write('\n')
-                    
-                # elif index % 5 == 0:
-                #     if index == (len(elem) - 1):
-                #         f.write(str(elem[index]) + '\n')
-                #     else:
-                #         f.write(str(elem[index]) + ' ')
-                # else:
-                #     f.write(str(elem[index]) + ',')
             print('num:', counter)
 
+        with open(os.path.join(self.label_save_dir, self.label_save_name), "w") as f:
+            json.dump(key_point_anns, f)   
+        
         print('Genrate"', os.path.join(self.label_save_dir, self.label_save_name), '" and "', \
               os.path.join(self.label_save_dir, self.class_names), '"')
-        f.close()
+        # f.close()
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--dataset_dir", default='/zpmc_disk', type=str, help="the dir of image dataset")
+    parser.add_argument("--dataset_dir", default='/root/code/dataset/val2017', type=str, help="the dir of image dataset")
     # parser.add_argument("--dataset_name", default='COCO', type=str, help="the name of image dataset")
     parser.add_argument("--ann_dir", default='/root/code/dataset/annotations',
                         type=str, help="the dir of josn label")
     parser.add_argument("--ann_name", default='person_keypoints_val2017.json', type=str, help="the name of josn label")
-    parser.add_argument("--label_save_dir", default='/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/generate_train_label', type=str,
+    parser.add_argument("--label_save_dir", default='/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out', type=str,
                         help="the path to save generate label")
-    parser.add_argument("--label_save_name", default='person_keypoints_val2017.txt', type=str, help="the name of saving generate label")
+    parser.add_argument("--label_save_name", default='person_keypoints_val2017.json', type=str, help="the name of saving generate label")
     parser.add_argument("--class_names", default='coco_keypoint_classes.txt', type=str, help="the name to classes")
-    parser.add_argument("--images_dir", default='/root/code/dataset/val2017', type=str, help="dataset images dir")
     cfg = parser.parse_args()
 
-    uav = zpmc_GenerateTrainLabel(cfg.ann_dir, cfg.ann_name, cfg.label_save_dir, cfg.label_save_name, cfg.class_names, cfg.images_dir)
+    uav = zpmc_GenerateTrainLabel(cfg.dataset_dir, cfg.ann_dir, cfg.ann_name, cfg.label_save_dir, cfg.label_save_name, cfg.class_names)
     uav.generate_train_label()
