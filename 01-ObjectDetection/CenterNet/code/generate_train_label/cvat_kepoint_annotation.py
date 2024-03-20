@@ -1,6 +1,8 @@
 import os, json, argparse
 import xml.dom.minidom
 from collections import defaultdict
+import math
+import numpy as np
  
 '''
 1、训练标签
@@ -103,21 +105,48 @@ class zpmc_GenerateTrainLabel:
             else:
                 print('image_path: {}'.format(image_path))
                 elem = [] # [x, y, cls, index]
+                index = -1
                 if num_points != 0:
                     for j in range(num_points):
-                        index = points[j].getElementsByTagName('attribute')[0].childNodes[0].data
+                        index = int(points[j].getElementsByTagName('attribute')[0].childNodes[0].data)
                         label = points[j].getAttribute('label')
                         points_xy = points[j].getAttribute('points')
                         points_xy = points_xy.split(';')
                         for xy in points_xy:
-                            x = int(xy[0])
-                            y = int(xy[1])
+                            xy = xy.split(',')
+                            x = int(float(xy[0]))
+                            y = int(float(xy[1]))
                             anns[image_path].append([x, y, self.name_cat[label], int(index)])
                     
                 if num_polygons != 0:
                     for k in range(num_polygons):
                         label = polygons[k].getAttribute('label')
-                        points_xy = polygons[k].getAttribute('points')
+                        points_xy = polygons[k].getAttribute('points').split(';')
+                        contour = []
+                        for xy in points_xy:
+                            xy = xy.split(',')
+                            x = int(float(xy[0]))
+                            y = int(float(xy[1]))
+                            contour.append([x,y])
+                        
+                        contour_np = np.array(contour)
+                        contour_x = contour_np[:, 0]
+                        contour_y = contour_np[:, 1]
+                        
+                        x_min = np.min(contour_x)
+                        y_min = np.min(contour_y)
+                        x_max = np.max(contour_x)
+                        y_max = np.max(contour_y)
+                        
+                        if(index == 0 or index ==3):
+                            xy_1 = [x_max, y_min]
+                            xy_2 = [x_min, y_max]
+                            corner = self.generate_marker_corner_point(contour, index, xy_1, xy_2)
+                        elif(index == 1 or index ==2):
+                            xy_1 = [x_min, y_min]
+                            xy_2 = [x_max, y_max]
+                            corner = self.generate_marker_corner_point(contour, index, xy_1, xy_2)
+                        anns[image_path].append([corner[0], corner[1], self.name_cat[label], int(index)])
                         
                         print('label:', label)
                         print("polygons: ", points_xy)
@@ -125,17 +154,46 @@ class zpmc_GenerateTrainLabel:
         with open(os.path.join(self.label_save_dir, self.label_save_name), "w") as f:
             json.dump(anns, f)    
         print('There are %d images!' % num_images)
+        
+    def generate_marker_corner_point(self, contour, L_Type, xy_1, xy_2):
+        x1 = xy_1[0]
+        y1 = xy_1[1]
+        x2 = xy_2[0]
+        y2 = xy_2[1]
+        A = y2 - y1
+        B = x1 - x2
+        C = x1*(-A) + y1*(-B)
+        distance_set = []
+        filter_set = []
+        num_points = len(contour)
+        for i in range(num_points):
+            X1 = float(contour[i][0])
+            Y1 = float(contour[i][1])
+            fenzi = A * X1 + B * Y1 + C
+            fenmu = math.sqrt(math.pow(A, 2) + math.pow(B, 2))
+            distance = math.fabs(fenzi) / fenmu
+            if(L_Type == 0 or L_Type == 2):
+                if fenzi < 0:
+                    distance_set.append(distance)
+                    filter_set.append(contour[i])
+            elif(L_Type == 1 or L_Type == 3):
+                if fenzi > 0:
+                    distance_set.append(distance)
+                    filter_set.append(contour[i])
+
+        maxPosition = distance_set.index(max(distance_set))# 最大值的索引
+        corner = filter_set[maxPosition]
+        return corner
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset_dir", default='/home/ntueee/CVAT_Annotation_Store/train01', type=str, help="the dir of image dataset")
-    # parser.add_argument("--dataset_name", default='COCO', type=str, help="the name of image dataset")
-    parser.add_argument("--ann_dir", default='/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out',
+    parser.add_argument("--dataset_dir", default='/root/code/dataset/cell_guide/train01', type=str, help="the dir of image dataset")
+    parser.add_argument("--ann_dir", default='/root/code/dataset/cell_guide/annotation',
                         type=str, help="the dir of josn label")
-    parser.add_argument("--ann_name", default='annotations.xml', type=str, help="the name of josn label")
+    parser.add_argument("--ann_name", default='train01.xml', type=str, help="the name of josn label")
     parser.add_argument("--label_save_dir", default='/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out', type=str,
                         help="the path to save generate label")
-    parser.add_argument("--label_save_name", default='train.json', type=str, help="the name of saving generate label")
-    parser.add_argument("--class_names", default='classes.txt', type=str, help="the name to classes")
+    parser.add_argument("--label_save_name", default='train01.json', type=str, help="the name of saving generate label")
+    parser.add_argument("--class_names", default='cell_guide_classes.txt', type=str, help="the name to classes")
     cfg = parser.parse_args()    
     zpmc_GenerateTrainLabel(dataset_dir=cfg.dataset_dir, ann_dir=cfg.ann_dir, ann_name=cfg.ann_name, label_save_dir=cfg.label_save_dir, label_save_name=cfg.label_save_name, class_names=cfg.class_names)

@@ -160,7 +160,7 @@
 
     Description：
     key: image_path;
-    value: list，where, the list container several sub lists. The elements of sub list are x , y, cls and index. Note that 1) cls start from 0，if there are 10 classes in dataset，the cls is 0, 1, 2, 3, 4, 5, 6, 7, 8, 9; 2) index only avaliable in container corener point detection. Or use -1 to respresent the index
+    value: list，where, the list container several sub lists. The elements of sub list are x , y, cls and index. Note that 1) cls start from 0，if there are 10 classes in dataset，the cls is 0, 1, 2, 3, 4, 5, 6, 7, 8, 9; 2) Index only avaliable in container corener point detection. Or use -1 to respresent the index
 
     For example (train.json): 
     {"train01/image_0000000432.jpeg": [["4", "2", 0, "0"]], 
@@ -200,10 +200,10 @@
     ```
 - COCO格式的训练标签生成，在`code/generate_train_label`目录下找到[coco_keypoint_annotation.py](code/generate_train_label/coco_keypoint_annotation.py)，指令如下：
     ```
-    python coco_annotation.py --ann_dir coco标签的存储路径 --ann_name coco标签的名称 --label_save_dir 生成训练标签的存储路径 --label_save_name 生成训练标签的存储名称 --class_names 生成coco中类别文件的存储名称 --images_dir 训练图像的存储目录
+    python coco_keypoint_annotation.py --dataset_dir 图像存储目录 --ann_dir coco标签的存储路径 --ann_name coco标签的名称 --label_save_dir 生成训练标签的存储路径 --label_save_name 生成训练标签的存储名称 --class_names 生成coco中类别文件的存储名称 
     
     For example:
-    python coco_annotation.py --ann_dir /root/code/dataset/annotations --ann_name instances_train2017.json --label_save_dir /root/code/dataset/annotations --label_save_name instances_train2017.txt --class_names coco_classes.txt --images_dir /root/code/dataset/train2017
+    python coco_keypoint_annotation.py --dataset_dir /root/code/dataset/val2017 --ann_dir /root/code/dataset/annotations --ann_name person_keypoints_val2017.json --label_save_dir /root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out --label_save_name person_keypoints_val2017.json --class_names person_keypoints_classes.txt 
     ```
 
 - `CVAT for images 1.1`格式的训练标签生成，在`code/generate_train_label`目录下找到[cvat_kepoint_annotation.pyy](code/generate_train_label/cvat_kepoint_annotation.py)，指令如下：
