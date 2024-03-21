@@ -125,6 +125,9 @@
         model_path = "预训练模型路径"
         train_annotation_path = "第一步‘制作训练标签’中的‘训练标签’路径"
         val_annotation_path = "第一步‘制作训练标签’中的‘训练标签’路径"
+
+        Init_Epoch = 0，UnFreeze_Epoch = 100，Freeze_Train = False，optimizer_type = 'adam'，Init_lr = 5e-4，weight_decay = 0。（不冻结）
+        Unfreeze_batch_size = 32 （根据现存大小设置，越大越好）
         ```
     - `cd code`
     - `python train.py`
