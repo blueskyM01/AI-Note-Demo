@@ -209,7 +209,7 @@
     python coco_keypoint_annotation.py --dataset_dir /root/code/dataset/val2017 --ann_dir /root/code/dataset/annotations --ann_name person_keypoints_val2017.json --label_save_dir /root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out --label_save_name person_keypoints_val2017.json --class_names person_keypoints_classes.txt 
     ```
 
-- `CVAT for images 1.1`格式的训练标签生成，在`code/generate_train_label`目录下找到[cvat_kepoint_annotation.pyy](code/generate_train_label/cvat_kepoint_annotation.py)，指令如下：
+- `CVAT for images 1.1`格式的训练标签生成，在`code/generate_train_label`目录下找到[cvat_kepoint_annotation.py](code/generate_train_label/cvat_kepoint_annotation.py)，指令如下：
     ```
     python cvat_kepoint_annotation.py --dataset_dir 图像存储目录 --ann_dir cvat标签的存储路径 --ann_name 标签的名称 --label_save_dir 生成训练标签的存储路径 --label_save_name 生成训练标签的存储名称 --class_names 生成coco中类别文件的存储名称 
     
