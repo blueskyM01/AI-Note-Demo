@@ -48,7 +48,10 @@ class CenterNet_Resnet50(nn.Module):
         
     def forward(self, x):
         feat = self.backbone(x)
-        return self.head(self.decoder(feat))
+        z_decoder = self.decoder(feat)
+        z_head = self.head(z_decoder)
+        # return self.head(self.decoder(feat))
+        return z_head
 
 class CenterNet_HourglassNet(nn.Module):
     def __init__(self, heads, pretrained=False, num_stacks=2, n=5, cnv_dim=256, dims=[256, 256, 384, 384, 384, 512], modules = [2, 2, 2, 2, 2, 4]):

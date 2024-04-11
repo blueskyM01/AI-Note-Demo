@@ -4,6 +4,7 @@
 
 [B站讲解视频2，本项目中采用的代码基于此视频](https://www.bilibili.com/video/BV1mK411u77S/?spm_id_from=333.337.search-card.all.click&vd_source=42f1e486842e9add1356fbbd0f4159f3)
 
+[参考文档](./code/img/CenterNet_doc.pdf)
 
 ## 1. Network
  - Backbone: [ResNet](), [Hourglass](), [Deep Layer Aggregation]()
@@ -116,7 +117,7 @@
     python coco_annotation.py --ann_dir /root/code/dataset/annotations --ann_name instances_train2017.json --label_save_dir /root/code/dataset/annotations --label_save_name instances_train2017.txt --class_names coco_classes.txt --images_dir /root/code/dataset/train2017
     ```
 
-- 训练
+- 运行训练代码
     - 在`code`目录下新建`model_data`和`logs`文件夹：`mkdir model_data`, `mkdir logs` 
     - 将`预训练模型`拷贝到`model_data`
     - 在`code`目录下找到`train.py`文件，修改相关参数：
@@ -127,7 +128,10 @@
         val_annotation_path = "第一步‘制作训练标签’中的‘训练标签’路径"
 
         Init_Epoch = 0，UnFreeze_Epoch = 100，Freeze_Train = False，optimizer_type = 'adam'，Init_lr = 5e-4，weight_decay = 0。（不冻结）
-        Unfreeze_batch_size = 32 （根据现存大小设置，越大越好）
+        注: 1）模型从主干的预训练权值开始训练，则设置model_path = ''，pretrain = True，此时仅加载主干(就是说：如果你想从imagenet的主干网络权重开始训练，则需要设置model_path = ''，pretrain = True)；
+            2）如果设置了model_path，则主干的权值无需加载，pretrained的值无意义；
+            3）如果不设置model_path，pretrained = False，Freeze_Train = Fasle，此时从0开始训练，且没有冻结主干的过程。
+        Unfreeze_batch_size = 32 （根据显存大小设置，越大越好）
         ```
     - `cd code`
     - `python train.py`

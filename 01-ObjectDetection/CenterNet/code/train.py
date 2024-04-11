@@ -233,7 +233,7 @@ if __name__ == "__main__":
     #   设置用到的显卡
     #------------------------------------------------------#
     ngpus_per_node  = torch.cuda.device_count()
-    if distributed:
+    if distributed: # pass
         dist.init_process_group(backend="nccl")
         local_rank  = int(os.environ["LOCAL_RANK"])
         rank        = int(os.environ["RANK"])
@@ -319,13 +319,13 @@ if __name__ == "__main__":
     #----------------------------#
     #   多卡同步Bn
     #----------------------------#
-    if sync_bn and ngpus_per_node > 1 and distributed:
+    if sync_bn and ngpus_per_node > 1 and distributed: # pass
         model_train = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model_train)
     elif sync_bn:
         print("Sync_bn is not support in one gpu or not distributed.")
 
     if Cuda:
-        if distributed:
+        if distributed: # pass
             #----------------------------#
             #   多卡平行运行
             #----------------------------#
@@ -424,7 +424,7 @@ if __name__ == "__main__":
         train_dataset   = CenternetDataset(train_lines, input_shape, num_classes, train = True)
         val_dataset     = CenternetDataset(val_lines, input_shape, num_classes, train = False)
         
-        if distributed:
+        if distributed: # pass
             train_sampler   = torch.utils.data.distributed.DistributedSampler(train_dataset, shuffle=True,)
             val_sampler     = torch.utils.data.distributed.DistributedSampler(val_dataset, shuffle=False,)
             batch_size      = batch_size // ngpus_per_node
@@ -458,7 +458,7 @@ if __name__ == "__main__":
             #   如果模型有冻结学习部分
             #   则解冻，并设置参数
             #---------------------------------------#
-            if epoch >= Freeze_Epoch and not UnFreeze_flag and Freeze_Train:
+            if epoch >= Freeze_Epoch and not UnFreeze_flag and Freeze_Train: # pass
                 batch_size = Unfreeze_batch_size
 
                 #-------------------------------------------------------------------#
@@ -494,7 +494,7 @@ if __name__ == "__main__":
 
                 UnFreeze_flag = True
 
-            if distributed:
+            if distributed: # pass
                 train_sampler.set_epoch(epoch)
                 
             set_optimizer_lr(optimizer, lr_scheduler_func, epoch)
