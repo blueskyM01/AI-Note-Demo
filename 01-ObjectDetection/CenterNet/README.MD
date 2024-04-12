@@ -167,7 +167,7 @@
 
     Description：
     key: image_path;
-    value: list，where, the list container several sub lists. The elements of sub list are x , y, cls and index. Note that 1) cls start from 0，if there are 10 classes in dataset，the cls is 0, 1, 2, 3, 4, 5, 6, 7, 8, 9; 2) Index only avaliable in container corener point detection. Or use -1 to respresent the index
+    value: list，where, the list contain several sub lists. The elements of sub list are x , y, cls and index. Note that 1) cls start from 0，if there are 10 classes in dataset，the cls is 0, 1, 2, 3, 4, 5, 6, 7, 8, 9; 2) Index only avaliable in container corener point detection. Or use -1 to respresent the index
 
     For example (train.json): 
     {"train01/image_0000000432.jpeg": [["4", "2", 0, "0"]], 
@@ -221,3 +221,38 @@
     python cvat_kepoint_annotation.py --dataset_dir /dataset/train01 --ann_dir /root/code/dataset/annotations --ann_name annotations.xml --label_save_dir /root/code/dataset/annotations --label_save_name train.json --class_names classes.txt
     ```
 
+- 运行训练代码
+    - 在`code`目录下新建`model_data`和`logs`文件夹：`mkdir model_data`, `mkdir logs` 
+    - 将`预训练模型`拷贝到`model_data`
+    - 在`code`目录下找到`train_keypoints.py`文件，修改相关参数：
+        ```
+        classes_path = "第一步‘制作训练标签’中的‘类别标签’路径"
+        model_path = "预训练模型路径"
+        train_annotation_path = "第一步‘制作训练标签’中的‘训练标签’路径"
+        val_annotation_path = "第一步‘制作训练标签’中的‘训练标签’路径"
+
+        Init_Epoch = 0，UnFreeze_Epoch = 100，Freeze_Train = False，optimizer_type = 'adam'，Init_lr = 5e-4，weight_decay = 0。（不冻结）
+        注: 1）模型从主干的预训练权值开始训练，则设置model_path = ''，pretrain = True，此时仅加载主干(就是说：如果你想从imagenet的主干网络权重开始训练，则需要设置model_path = ''，pretrain = True)；
+            2）如果设置了model_path，则主干的权值无需加载，pretrained的值无意义；
+            3）如果不设置model_path，pretrained = False，Freeze_Train = Fasle，此时从0开始训练，且没有冻结主干的过程。
+        Unfreeze_batch_size = 32 （根据显存大小设置，越大越好）
+        ```
+    - `cd code`
+    - `python train_keypoints.py`
+
+#### 4.3.2 Forward 
+- (x86)
+    - 在`code`目录下找到`centernet_keypoints.py`，修改相关参数：
+        ```
+        "model_path": "模型路径"
+        "classes_path": "第一步‘制作训练标签’中的‘类别标签’路径"
+        ```
+    - 在`code`目录下找到`predict_keypoints.py`，修改相关参数：
+        ```
+        将mode设置为predict
+        mode = "predict"
+        ```
+    - `cd code`
+    - `python predict_keypoints.py --image_path xxxxx(需要测试图片的路径)`
+    - 预测成功后，会在`img_out`目录下生成`results.jpg`
+- arm

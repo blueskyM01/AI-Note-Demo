@@ -5,20 +5,20 @@ import datetime
 import os
 
 import numpy as np
-import torch
+import torch, json
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from functools import partial
 
-from nets.centernet import CenterNet_HourglassNet, CenterNet_Resnet50
+from nets.centernet_keypoints import CenterNet_keypoints_HourglassNet, CenterNet_keypoints_Resnet50
 from nets.centernet_training import get_lr_scheduler, set_optimizer_lr
 from utils.callbacks import EvalCallback, LossHistory
-from utils.dataloader import CenternetDataset, centernet_dataset_collate
+from utils.dataloader_keypoints import CenternetDataset, centernet_dataset_collate
 from utils.utils import (download_weights, get_classes, seed_everything,
                          show_config, worker_init_fn)
-from utils.utils_fit import fit_one_epoch
+from utils.utils_fit_keypoints import fit_one_epoch
 
 '''
 训练自己的目标检测模型一定需要注意以下几点：
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     #   classes_path    指向model_data下的txt，与自己训练的数据集相关 
     #                   训练前一定要修改classes_path，使其对应自己的数据集
     #---------------------------------------------------------------------#
-    classes_path    = '/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out/coco_classes.txt'
+    classes_path    = '/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out/person_keypoints_classes.txt'
     #----------------------------------------------------------------------------------------------------------------------------#
     #   权值文件的下载请看README，可以通过网盘下载。模型的 预训练权重 对不同数据集是通用的，因为特征是通用的。
     #   模型的 预训练权重 比较重要的部分是 主干特征提取网络的权值部分，用于进行特征提取。
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     #------------------------------------------------------------------#
     #   save_period     多少个epoch保存一次权值
     #------------------------------------------------------------------#
-    save_period         = 5
+    save_period         = 1
     #------------------------------------------------------------------#
     #   save_dir        权值与日志文件保存的文件夹
     #------------------------------------------------------------------#
@@ -225,8 +225,8 @@ if __name__ == "__main__":
     #   train_annotation_path   训练图片路径和标签
     #   val_annotation_path     验证图片路径和标签
     #------------------------------------------------------#
-    train_annotation_path   = '/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out/instances_train2017.txt'
-    val_annotation_path     = '/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out/instances_val2017.txt'
+    train_annotation_path   = '/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out/person_keypoints_train2017.json'
+    val_annotation_path     = '/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out/person_keypoints_val2017.json'
     
     seed_everything(seed)
     #------------------------------------------------------#
@@ -263,9 +263,9 @@ if __name__ == "__main__":
     class_names, num_classes = get_classes(classes_path)
 
     if backbone == "resnet50":
-        model = CenterNet_Resnet50(num_classes, pretrained = pretrained)
+        model = CenterNet_keypoints_Resnet50(num_classes, pretrained = pretrained)
     else:
-        model = CenterNet_HourglassNet({'hm': num_classes, 'wh': 2, 'reg':2}, pretrained = pretrained)
+        model = CenterNet_keypoints_HourglassNet({'hm': num_classes, 'wh': 2, 'reg':2}, pretrained = pretrained)
     if model_path != '':
         #------------------------------------------------------#
         #   权值文件请看README，百度网盘下载
@@ -339,10 +339,39 @@ if __name__ == "__main__":
     #---------------------------#
     #   读取数据集对应的txt
     #---------------------------#
-    with open(train_annotation_path) as f:
-        train_lines = f.readlines()
-    with open(val_annotation_path) as f:
-        val_lines   = f.readlines()
+    with open(train_annotation_path, 'r') as load_f:
+        load_train_dict = json.load(load_f)
+    load_f.close()
+    train_lines = []
+    for n_key in load_train_dict.keys():
+        train_line = n_key + ' '
+        for ele in load_train_dict[n_key]:
+            for i in range(3):
+                if i !=2:
+                    train_line += str(ele[i]) + ','
+                else:
+                    train_line += str(ele[i]) + ' '
+        train_lines.append(train_line)
+    
+    with open(val_annotation_path, 'r') as load_f:
+        load_val_dict = json.load(load_f)
+    load_f.close()
+    val_lines = []
+    for n_key in load_val_dict.keys():
+        val_line = n_key + ' '
+        for ele in load_val_dict[n_key]:
+            for i in range(3):
+                if i !=2:
+                    val_line += str(ele[i]) + ','
+                else:
+                    val_line += str(ele[i]) + ' '
+        val_lines.append(val_line)
+    
+    
+    # with open(train_annotation_path) as f:
+    #     train_lines = f.readlines()
+    # with open(val_annotation_path) as f:
+    #     val_lines   = f.readlines()
     num_train   = len(train_lines)
     num_val     = len(val_lines)
     

@@ -31,7 +31,7 @@ class CenterNet(object):
         #   如果出现shape不匹配，同时要注意训练时的model_path和classes_path参数的修改
         #--------------------------------------------------------------------------#
         "model_path"        : '/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/logs/best_epoch_weights.pth',
-        "classes_path"      : '/root/code/dataset/annotations/coco_classes.txt',
+        "classes_path"      : '/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out/coco_classes.txt',
         #--------------------------------------------------------------------------#
         #   用于选择所使用的模型的主干
         #   resnet50, hourglass

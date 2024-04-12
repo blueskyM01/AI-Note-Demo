@@ -46,10 +46,12 @@ class CenterNet_Resnet50(nn.Module):
         self.head.cls_head[-1].weight.data.fill_(0)
         self.head.cls_head[-1].bias.data.fill_(-2.19)
         
-    def forward(self, x):
-        feat = self.backbone(x)
-        z_decoder = self.decoder(feat)
-        z_head = self.head(z_decoder)
+    def forward(self, x): # x torch.Size:(32, 3, 512, 512) ---- (batch, channel, w, h)
+        feat = self.backbone(x) # feat torch.Size([32, 2048, 16, 16]) ---- (batch, channel, w, h)
+        z_decoder = self.decoder(feat) # z_decoder torch.Size([32, 64, 128, 128])
+        z_head = self.head(z_decoder) # heat map torch.Size([32, 80, 128, 128]) ---- (batch, n_cls, w, h); 
+                                      # wh torch.Size([32, 2, 128, 128]) ---- (batch, w_h, w, h); 
+                                      # offset torch.Size([32, 2, 128, 128]) ---- (batch, offset_x_y, w, h)
         # return self.head(self.decoder(feat))
         return z_head
 

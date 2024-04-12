@@ -15,7 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from .utils import cvtColor, preprocess_input, resize_image
-from .utils_bbox import decode_bbox, postprocess
+from .utils_bbox_keypoints import decode_bbox, postprocess
 from .utils_map import get_coco_map, get_map
 
 
