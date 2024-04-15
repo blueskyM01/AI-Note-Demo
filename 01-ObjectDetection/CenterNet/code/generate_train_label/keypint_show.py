@@ -36,6 +36,7 @@ class ann_show:
             os.makedirs(self.result_save_dir)
         
         for image_path in images_path:
+            image_name = image_path.split('/')[-1]
             img = cv2.imread(image_path)
             anns = load_dict[image_path]
             counter += 1
@@ -44,10 +45,10 @@ class ann_show:
                 y = int(ann[1])
                 cls = int(ann[2])
                 index = int(ann[3])
-                cv2.circle(img, (x, y), 4, (0,0,255), -1)
+                cv2.circle(img, (x, y), 8, (0,0,255), -1)
                 cv2.putText(img, self.classes[cls], (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 1)
-            cv2.imwrite(os.path.join(self.result_save_dir, str(counter)+'.jpg'), img)
-            print('Saving {}'.format(os.path.join(self.result_save_dir, str(counter)+'.jpg')))
+            cv2.imwrite(os.path.join(self.result_save_dir, str(counter)+image_name), img)
+            print('Saving {}'.format(os.path.join(self.result_save_dir, str(counter)+image_name)))
                 
 
 
