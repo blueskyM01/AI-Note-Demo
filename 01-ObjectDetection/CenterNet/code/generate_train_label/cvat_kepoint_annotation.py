@@ -57,6 +57,8 @@ class zpmc_GenerateTrainLabel:
         self.label_save_dir = label_save_dir
         self.label_save_name = label_save_name
         self.class_names = class_names
+        if not os.path.exists(self.label_save_dir):
+            os.makedirs(self.label_save_dir)
         #获取 xml 文档对象
         self.domTree = xml.dom.minidom.parse(os.path.join(self.ann_dir, self.ann_name))
         #获得根节点
@@ -150,7 +152,7 @@ class zpmc_GenerateTrainLabel:
                         
                         print('label:', label)
                         print("polygons: ", points_xy)
-                
+            
         with open(os.path.join(self.label_save_dir, self.label_save_name), "w") as f:
             json.dump(anns, f)    
         print('There are %d images!' % num_images)

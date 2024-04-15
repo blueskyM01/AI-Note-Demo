@@ -221,7 +221,17 @@
     python cvat_kepoint_annotation.py --dataset_dir /dataset/train01 --ann_dir /root/code/dataset/annotations --ann_name annotations.xml --label_save_dir /root/code/dataset/annotations --label_save_name train.json --class_names classes.txt
     ```
 
-- 运行训练代码
+- 注：若要训练`container corner`和`cell guide`数据集，则需要进行如下步骤
+    - 原因：`container corner`和`cell guide`为小目标，直接使用数据集训练难以识别。采用随机裁剪的策略，生成裁剪后的数据集和对于的`标签`（格式为上述的` Keypoint detection`格式）。因此，新生成的数据集`可直接导入训练`。
+    - 运行随机裁剪脚本[crop_cell_guide_and_container_corner.py](code/generate_train_label/crop_cell_guide_and_container_corner.py)生成裁剪后的数据集，指令如下：
+        ```
+        python crop_cell_guide_and_container_corner.py --label_path 需要裁剪数据集的annotation标签（格式为上述的 Keypoint detection 格式，不是这种格式的话，用上面给出的代码自己转下） --class_name_path 需要裁剪数据集的类别标签（上述的.txt文件格式）--crop_dataset_save_dir 生成的裁剪数据集的存储目录 --train_val 存储裁剪图片文件夹的名称 --crop_label_name annotation的存储名称（.json） --crop_class_name 类别的存储名称（.txt） --crop_num 每个目标随机裁剪的数量
+
+        For example:
+        python crop_cell_guide_and_container_corner.py --label_path /root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out/cell_guide_contanier_corner/CellGuideContainerCorner_val01.json --class_name_path /root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out/cell_guide_contanier_corner/CellGuideContainerCorner.txt --crop_dataset_save_dir /root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img_out/Crop_CellGuideContainerCorner --train_val val_v1 --crop_label_name Crop_CellGuideContainerCorner_val01.json --crop_class_name crop_classes.txt --crop_num 10
+        ```
+
+- 运行`训练`代码
     - 在`code`目录下新建`model_data`和`logs`文件夹：`mkdir model_data`, `mkdir logs` 
     - 将`预训练模型`拷贝到`model_data`
     - 在`code`目录下找到`train_keypoints.py`文件，修改相关参数：
