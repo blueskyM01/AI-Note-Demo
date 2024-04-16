@@ -222,7 +222,7 @@
     ```
 
 - 注：若要训练`container corner`和`cell guide`数据集，则需要进行如下步骤
-    - 原因：`container corner`和`cell guide`为小目标，直接使用数据集训练难以识别。采用随机裁剪的策略，生成裁剪后的数据集和对于的`标签`（格式为上述的` Keypoint detection`格式）。因此，新生成的数据集`可直接导入训练`。
+    - 原因：`container corner`和`cell guide`为小目标，直接使用数据集训练难以识别。采用随机裁剪的策略，生成裁剪后的数据集和对应的`标签`（格式为上述的` Keypoint detection`格式）。因此，新生成的数据集`可直接导入训练`。
     - 运行随机裁剪脚本[crop_cell_guide_and_container_corner.py](code/generate_train_label/crop_cell_guide_and_container_corner.py)生成裁剪后的数据集，指令如下：
         ```
         python crop_cell_guide_and_container_corner.py --label_path 需要裁剪数据集的annotation标签（格式为上述的 Keypoint detection 格式，不是这种格式的话，用上面给出的代码自己转下） --class_name_path 需要裁剪数据集的类别标签（上述的.txt文件格式）--crop_dataset_save_dir 生成的裁剪数据集的存储目录 --train_val 存储裁剪图片文件夹的名称 --crop_label_name annotation的存储名称（.json） --crop_class_name 类别的存储名称（.txt） --crop_num 每个目标随机裁剪的数量
@@ -260,9 +260,9 @@
     - 在`code`目录下找到`predict_keypoints.py`，修改相关参数：
         ```
         将mode设置为predict
-        mode = "predict"
+        mode = "predict" # 不裁剪预测视频 mode = "video"； 裁剪预测视频 mode = "video_crop"
         ```
     - `cd code`
-    - `python predict_keypoints.py --image_path xxxxx(需要测试图片的路径)`
+    - `python predict_keypoints.py --video_image_path xxxxx(需要测试图片或视频的路径)`
     - 预测成功后，会在`img_out`目录下生成`results.jpg`
 - arm

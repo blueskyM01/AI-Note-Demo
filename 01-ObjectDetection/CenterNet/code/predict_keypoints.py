@@ -13,7 +13,7 @@ from centernet_keypoints import CenterNet
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image_path", default='/root/code/AI-Note-Demo/01-ObjectDetection/CenterNet/code/img/person.jpg', type=str, help="")
+    parser.add_argument("--video_image_path", default='/root/code/test_meterials/cell_guide_simulator/br.mp4', type=str, help="")
     cfg = parser.parse_args()
     
     centernet = CenterNet()
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     #   'heatmap'           表示进行预测结果的热力图可视化，详情查看下方注释。
     #   'export_onnx'       表示将模型导出为onnx，需要pytorch1.7.1以上。
     #----------------------------------------------------------------------------------------------------------#
-    mode = "predict"
+    mode = "video_crop"
     #-------------------------------------------------------------------------#
     #   crop                指定了是否在单张图片预测后对目标进行截取
     #   count               指定了是否进行目标的计数
@@ -86,7 +86,7 @@ if __name__ == "__main__":
         比如判断if predicted_class == 'car': 即可判断当前目标是否为车，然后记录数量即可。利用draw.text即可写字。
         '''
 
-        image = Image.open(cfg.image_path)
+        image = Image.open(cfg.video_image_path)
         r_image = centernet.detect_image(image, crop = crop, count=count)
         save_results = np.asanyarray(r_image)
         # r_image.show()
@@ -125,7 +125,7 @@ if __name__ == "__main__":
             print("fps= %.2f"%(fps))
             frame = cv2.putText(frame, "fps= %.2f"%(fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             
-            cv2.imshow("video",frame)
+            # cv2.imshow("video",frame)
             c= cv2.waitKey(1) & 0xff 
             if video_save_path!="":
                 out.write(frame)
@@ -139,7 +139,80 @@ if __name__ == "__main__":
         if video_save_path!="":
             print("Save processed video to the path :" + video_save_path)
             out.release()
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
+        
+    elif mode == "video_crop":
+        capture = cv2.VideoCapture(cfg.video_image_path)
+        if not os.path.exists(dir_save_path):
+            os.makedirs(dir_save_path)
+
+        fourcc  = cv2.VideoWriter_fourcc(*'XVID')
+        size    = (int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        out     = cv2.VideoWriter(os.path.join(dir_save_path, 'video_out.avi'), fourcc, video_fps, size)
+
+        ref, frame = capture.read()
+        if not ref:
+            raise ValueError("未能正确读取摄像头（视频），请注意是否正确安装摄像头（是否正确填写视频路径）。")
+
+        fps = 0.0
+        while(True):
+            t1 = time.time()
+            # 读取某一帧
+            ref, frame = capture.read()
+            
+            if not ref:
+                break
+            
+            frame_crop1 = frame[954:1210, 284:540, :] # bl
+            # 格式转变，BGRtoRGB
+            frame_crop1 = cv2.cvtColor(frame_crop1,cv2.COLOR_BGR2RGB)
+            # 转变成Image
+            frame_crop1 = Image.fromarray(np.uint8(frame_crop1))
+            # 进行检测
+            corrdinate1_xy = np.array(centernet.detect_crop_image(frame_crop1))
+            # # RGBtoBGR满足opencv显示格式
+            # frame_crop1 = cv2.cvtColor(frame_crop1,cv2.COLOR_RGB2BGR)
+            
+            frame_crop2 = frame[659:915, 321:577, :] # bl
+            # 格式转变，BGRtoRGB
+            frame_crop2 = cv2.cvtColor(frame_crop2,cv2.COLOR_BGR2RGB)
+            # 转变成Image
+            frame_crop2 = Image.fromarray(np.uint8(frame_crop2))
+            # 进行检测
+            corrdinate2_xy = np.array(centernet.detect_crop_image(frame_crop2))
+            # # RGBtoBGR满足opencv显示格式
+            # frame_crop2 = cv2.cvtColor(frame_crop2,cv2.COLOR_RGB2BGR)
+            
+            fps  = ( fps + (1./(time.time()-t1)) ) / 2
+            print("fps= %.2f"%(fps))
+            frame = cv2.putText(frame, "fps= %.2f"%(fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            
+            # frame[902:1158, 457:713, :] = frame_crop1 # bl
+            # frame[664:920, 414:670, :] = frame_crop2 # bl
+            for ele in corrdinate1_xy:
+                x1_c = ele[0]
+                y1_c = ele[1]
+                cv2.circle(frame, (x1_c+284, y1_c+954), 4, (0,0,255), -1)
+            for ele in corrdinate2_xy:
+                x1_c = ele[0]
+                y1_c = ele[1]
+                cv2.circle(frame, (x1_c+321, y1_c+659), 4, (0,0,255), -1)
+            
+            # cv2.imshow("video",frame)
+            # c= cv2.waitKey(1) & 0xff 
+            # if video_save_path!="":
+            out.write(frame)
+
+            # if c==27:
+            #     capture.release()
+            #     break
+
+        print("Video Detection Done!")
+        capture.release()
+        # if video_save_path!="":
+        print("Save processed video to the path :" + os.path.join(dir_save_path, 'video_out.avi'))
+        out.release()
+        # cv2.destroyAllWindows()
         
     elif mode == "fps":
         img = Image.open(fps_image_path)
